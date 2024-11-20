@@ -23,7 +23,7 @@ def main(accounts):
         report.send_report_via_email(
             email_list=["ravinda.esol@gmail.com"],
             # email_list=["ravinda.esol@gmail.com", "charithv@effectivesolutions.lk", "hariharankanakaraja@gmail.com"],
-            app_password="gfws euwi poai nmpo",
+            app_password="",
             sender_email="wije2582@gmail.com",
             report_name=report_name
         )
@@ -31,7 +31,7 @@ def main(accounts):
 
 if __name__ == "__main__":
     accounts = [
-        #{"username": "nolimit_admin", "password": "nolimit@123"},
-        {"username": "aw_admin", "password": "aw@123"}
+        #{"username": "nolimit_admin", "password": ""},
+        {"username": "aw_admin", "password": ""}
     ]
     main(accounts)
