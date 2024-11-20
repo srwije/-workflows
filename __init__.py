@@ -1,6 +1,6 @@
-from lk.fleetmgt.testcases.LoginDetails import LoginDetails
-from lk.fleetmgt.testcases.TestCases import TestCases
-from lk.fleetmgt.testcases.Report_Generator import ReportGenerator
+from LoginDetails import LoginDetails
+from TestCases import TestCases
+from Report_Generator import ReportGenerator
 
 
 def main(accounts):
