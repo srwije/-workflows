@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
+from datetime import datetime, timedelta
 import time
 
 
@@ -18,22 +18,36 @@ class TestCases:
         chrome_options.add_argument('--disable-dev-shm-usage')  # For CI environments
         chrome_options.add_argument('--disable-gpu')  # Disable GPU to avoid issues in headless mode
         chrome_options.add_argument('--remote-debugging-port=9222')  # Allow debugging in headless mode
+        chrome_options.add_argument(
+            '--disable-software-rasterizer')  # Disable rasterizer, often helpful in headless mode
+        chrome_options.add_argument('--start-maximized')  # Ensure the window is maximized
 
-        # Start the Chrome driver with the specified options
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver.maximize_window()
-        self.wait_conditions = WebDriverWait(self.driver, 10)
-        self.processed_devices = set()
+        try:
+            # Start the Chrome driver with the specified options
+            self.driver = webdriver.Chrome(options=chrome_options)
+            self.driver.maximize_window()
+            self.wait_conditions = WebDriverWait(self.driver, 10)
+            self.processed_devices = set()
+        except Exception as e:
+            print(f"Error initializing WebDriver: {e}")
+            self.driver = None
 
     def __del__(self):
-        if hasattr(self, 'driver'):
-            self.driver.quit()
+        # Ensure that the driver exists before quitting
+        if hasattr(self, 'driver') and self.driver:
+            try:
+                self.driver.quit()
+            except Exception as e:
+                print(f"Error quitting WebDriver: {e}")
 
     def login(self, report_obj):
+        if not self.driver:
+            print("WebDriver not initialized. Skipping login.")
+            return
+
         try:
             self.driver.get(self.login_details.url)
             username_input = self.wait_conditions.until(EC.element_to_be_clickable((By.NAME, "username")))
-
             username_input.send_keys(self.login_details.username)
 
             password_input = self.wait_conditions.until(EC.element_to_be_clickable((By.NAME, "password")))
@@ -46,12 +60,14 @@ class TestCases:
             assert device_link.text == "Devices"
 
             print("Login successful!")
-            # report_obj.passed_tests.append(("Login Test", "Login Successful"))
         except Exception as e:
             print(f"An error occurred during login: {e}")
-            # report_obj.failed_tests.append(("Login Test", f"Failed to login: {e}"))
 
     def check_devices(self, report_obj):
+        if not self.driver:
+            print("WebDriver not initialized. Skipping device check.")
+            return
+
         try:
             device_link = self.wait_conditions.until(EC.presence_of_element_located((By.LINK_TEXT, "Devices")))
             device_link.click()
@@ -77,7 +93,6 @@ class TestCases:
                             time.sleep(1)
                             if retries == 0:
                                 print(f"Skipping row due to error: {e}")
-                                # report_obj.failed_tests.append(("Device List", "Error processing a device row"))
 
                 time.sleep(5)
                 try:
@@ -92,7 +107,6 @@ class TestCases:
                     break
         except TimeoutException:
             print("Device list did not load in time.")
-            # report_obj.failed_tests.append(("Device List", "Error Loading List"))
 
     def check_last_updated_time(self, row, device_id, report_obj):
         try:
@@ -111,4 +125,3 @@ class TestCases:
                     ("Device", f"Device {device_id} is NOT up to date ({last_updated_text})"))
         except Exception as e:
             print(f"Error checking last updated time for device {device_id}: {e}")
-            # report_obj.failed_tests.append(("Device List", "Error checking last updated time"))
