@@ -10,19 +10,24 @@ import time
 class TestCases:
     def __init__(self, login_details):
         self.login_details = login_details
-        # Setting up headless Chrome options for running in CI
+
+        # Headless Chrome options for CI environments
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('--headless')  # Run Chrome in headless mode
         chrome_options.add_argument('--no-sandbox')  # For CI environments like GitHub Actions
         chrome_options.add_argument('--disable-dev-shm-usage')  # For CI environments
+        chrome_options.add_argument('--disable-gpu')  # Disable GPU to avoid issues in headless mode
+        chrome_options.add_argument('--remote-debugging-port=9222')  # Allow debugging in headless mode
 
+        # Start the Chrome driver with the specified options
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.maximize_window()
         self.wait_conditions = WebDriverWait(self.driver, 10)
         self.processed_devices = set()
 
     def __del__(self):
-        self.driver.quit()
+        if hasattr(self, 'driver'):
+            self.driver.quit()
 
     def login(self, report_obj):
         try:
@@ -52,7 +57,8 @@ class TestCases:
             device_link.click()
 
             while True:
-                self.wait_conditions.until(lambda driver: len(driver.find_elements(By.CSS_SELECTOR, "table#DataTables_Table_1 tbody tr")) > 0)
+                self.wait_conditions.until(
+                    lambda driver: len(driver.find_elements(By.CSS_SELECTOR, "table#DataTables_Table_1 tbody tr")) > 0)
                 device_rows = self.driver.find_elements(By.CSS_SELECTOR, "table#DataTables_Table_1 tbody tr")
 
                 for row in device_rows:
@@ -101,7 +107,8 @@ class TestCases:
                 report_obj.passed_tests.append(("Device", f"Device {device_id} is up to date ({last_updated_text})"))
             else:
                 print(f"Device {device_id} is NOT up to date.")
-                report_obj.failed_tests.append(("Device", f"Device {device_id} is NOT up to date ({last_updated_text})"))
+                report_obj.failed_tests.append(
+                    ("Device", f"Device {device_id} is NOT up to date ({last_updated_text})"))
         except Exception as e:
             print(f"Error checking last updated time for device {device_id}: {e}")
             # report_obj.failed_tests.append(("Device List", "Error checking last updated time"))
