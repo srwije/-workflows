@@ -27,11 +27,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install selenium  # Install selenium
-          pip install openpyxl  # Install openpyxl
-          pip install -r requirements.txt || true  # Install from requirements.txt if present
+          pip install selenium
+          pip install openpyxl
+          pip install -r requirements.txt || true  # Optional installation from requirements.txt
 
-      # Step 4: Run the Python script
+      # Step 4: Verify installed modules
+      - name: Verify dependencies
+        run: |
+          python -m pip list
+
+      # Step 5: Run the Python script
       - name: Run Python script
         run: |
           python __init__.py
