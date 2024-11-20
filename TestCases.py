@@ -10,7 +10,13 @@ import time
 class TestCases:
     def __init__(self, login_details):
         self.login_details = login_details
-        self.driver = webdriver.Chrome()
+        # Setting up headless Chrome options for running in CI
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--headless')  # Run Chrome in headless mode
+        chrome_options.add_argument('--no-sandbox')  # For CI environments like GitHub Actions
+        chrome_options.add_argument('--disable-dev-shm-usage')  # For CI environments
+
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.maximize_window()
         self.wait_conditions = WebDriverWait(self.driver, 10)
         self.processed_devices = set()
@@ -22,6 +28,7 @@ class TestCases:
         try:
             self.driver.get(self.login_details.url)
             username_input = self.wait_conditions.until(EC.element_to_be_clickable((By.NAME, "username")))
+
             username_input.send_keys(self.login_details.username)
 
             password_input = self.wait_conditions.until(EC.element_to_be_clickable((By.NAME, "password")))
@@ -34,10 +41,10 @@ class TestCases:
             assert device_link.text == "Devices"
 
             print("Login successful!")
-            #report_obj.passed_tests.append(("Login Test", "Login Successful"))
+            # report_obj.passed_tests.append(("Login Test", "Login Successful"))
         except Exception as e:
             print(f"An error occurred during login: {e}")
-            #report_obj.failed_tests.append(("Login Test", f"Failed to login: {e}"))
+            # report_obj.failed_tests.append(("Login Test", f"Failed to login: {e}"))
 
     def check_devices(self, report_obj):
         try:
@@ -64,7 +71,7 @@ class TestCases:
                             time.sleep(1)
                             if retries == 0:
                                 print(f"Skipping row due to error: {e}")
-                                #report_obj.failed_tests.append(("Device List", "Error processing a device row"))
+                                # report_obj.failed_tests.append(("Device List", "Error processing a device row"))
 
                 time.sleep(5)
                 try:
@@ -79,7 +86,7 @@ class TestCases:
                     break
         except TimeoutException:
             print("Device list did not load in time.")
-            #report_obj.failed_tests.append(("Device List", "Error Loading List"))
+            # report_obj.failed_tests.append(("Device List", "Error Loading List"))
 
     def check_last_updated_time(self, row, device_id, report_obj):
         try:
@@ -97,4 +104,4 @@ class TestCases:
                 report_obj.failed_tests.append(("Device", f"Device {device_id} is NOT up to date ({last_updated_text})"))
         except Exception as e:
             print(f"Error checking last updated time for device {device_id}: {e}")
-            #report_obj.failed_tests.append(("Device List", "Error checking last updated time"))
+            # report_obj.failed_tests.append(("Device List", "Error checking last updated time"))
