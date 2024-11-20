@@ -28,7 +28,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install selenium  # Install selenium
-          pip install -r requirements.txt || true  # Optional: Install from requirements.txt if present
+          pip install openpyxl  # Install openpyxl
+          pip install -r requirements.txt || true  # Install from requirements.txt if present
 
       # Step 4: Run the Python script
       - name: Run Python script
