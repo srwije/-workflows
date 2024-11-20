@@ -24,7 +24,7 @@ class TestCases:
         try:
             # Ensure correct path to the ChromeDriver binary is set if necessary
             # You can manually specify the path to ChromeDriver as well
-            service = Service(executable_path='/path/to/chromedriver')  # Adjust the path if necessary
+            service = Service(executable_path='/chromedriver')  # Adjust the path if necessary
 
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
             self.driver.maximize_window()  # Maximize the window
